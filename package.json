@@ -1,0 +1,28 @@
+{
+  "version": "0.0.0",
+  "description": "Variable name interpolation",
+  "main": "lib/index.js",
+  "author": "Nathan Schwartz <nathan.schwartz95@gmail.com>",
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/Nathan-Schwartz/babel-plugin-variable-name-interpolation"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-preset-stage-0": "^6.16.0",
+    "mocha": "^3.1.2"
+  },
+  "scripts": {
+    "clean": "rm -rf lib",
+    "build": "babel src -d lib",
+    "test": "mocha --compilers js:babel-register",
+    "test:watch": "npm run test -- --watch",
+    "prepublish": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "babel",
+    "plugin",
+    "babel-plugin"
+  ]
+}
