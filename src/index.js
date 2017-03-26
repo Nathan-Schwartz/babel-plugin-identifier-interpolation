@@ -1,19 +1,17 @@
-const findTemplateValueVisitor = {
+const shallowVariableDeclaratorVisitor = {
+  BlockStatement(path) {
+    // Any block statements found here will already have been checked or won't be ancestors
+    path.skip();
+  },
   VariableDeclarator(path) {
-    if (Object.keys(this).includes(path.node.id.name)
-      && this[path.node.id.name] === null) {
+    // If this node's name matches the name of an unfulfilled variable, attempt to use it's value
+    if (Object.keys(this).includes(path.node.id.name) && this[path.node.id.name] === null) {
       if (typeof path.node.init.value !== "string") {
         throw path.buildCodeFrameError(`Value corresponding to the template id: \`${path.node.id.name}\` must be a string.`);
       }
       this[path.node.id.name] = path.node.init.value;
     }
-  },
-
-  // Use Cases:
-  // Variable passed into function
-  // Variable assignment passed into function
-  // Literal passed into function
-  // Default parameter for function
+  }
 }
 
 export default function ({ types: t }) {
@@ -36,7 +34,7 @@ export default function ({ types: t }) {
 
 function findAllTemplateNames(name, path, tag) {
   let lowestNecessaryPath;
-  
+
   // Ensure that tags are the first and last thing in the string
   const cleanTagSplit = name
     .slice(name.indexOf(tag), name.lastIndexOf(tag) + tag.length)
@@ -58,19 +56,36 @@ function findAllTemplateNames(name, path, tag) {
       return acc;
     }, {});
 
-  templateVarNames.forEach((templateVarName) => {
-    // TODO: If I can determine which path is most distant, I could just traverse that one.
-    // Traverse up the tree to the point where the variable is available in scope
-    lowestNecessaryPath = path.find((path) => path.scope.bindings[templateVarName]);
+  let workingPath = path;
+  let lastWorkingPath;
+  do {
+    // Store reference in case we need to do a follow up search.
+    lastWorkingPath = workingPath;
 
-    // Throw if not found.
-    if (lowestNecessaryPath === null) {
-      throw path.buildCodeFrameError(`Could not find a value corresponding to the template id: \`${templateVarName}\``);
+    // Overwrite working path with the path of the nearest ancestor of type "BlockStatement"
+    // After retrieval, we will search this node for the value of the variable specified
+    workingPath = workingPath.findParent((path) => path.node.type === "BlockStatement")
+
+    // If there are no more ancestral BlockStatements, it is time to check the Program level.
+    // This will be the final traversal.
+    if (workingPath === null) {
+      lastWorkingPath
+        .findParent((path) => path.node.type === "Program")
+        .traverse(shallowVariableDeclaratorVisitor, resultStore)
+
+      // Check for any unfulfilled entries in resultStore. If there are any, raise.
+      const unfulfilled = Object.keys(resultStore).find(key => resultStore[key] === null)
+      if (unfulfilled) {
+        throw path.buildCodeFrameError(`Could not find a value corresponding to the template id: \`${unfulfilled}\``);
+      }
+
+      // If all are fulfilled, exit the loop and return resultStore.
+      return resultStore;
     }
 
-    // Use another Visitor to handle the retrieval of each value.
-    lowestNecessaryPath.traverse(findTemplateValueVisitor, resultStore);
-  })
+    workingPath.traverse(shallowVariableDeclaratorVisitor, resultStore)
+
+  } while (Object.keys(resultStore).some(key => resultStore[key] === null));
 
   return resultStore;
 }
