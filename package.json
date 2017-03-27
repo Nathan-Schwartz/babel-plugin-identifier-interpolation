@@ -1,6 +1,6 @@
 {
   "version": "0.0.0",
-  "description": "Variable name interpolation",
+  "description": "Identifier interpolation with Babel",
   "main": "lib/index.js",
   "author": "Nathan Schwartz <nathan.schwartz95@gmail.com>",
   "repository" : {

@@ -8,12 +8,12 @@ function trim(str) {
   return str.replace(/^\s+|\s+$/, '');
 }
 
-describe('Variable Name Interpolation', () => {
-  const legalFixturesDir = path.join(__dirname, 'fixtures', 'transformations');
-  fs.readdirSync(legalFixturesDir).map((caseName) => {
+describe('Identifier Interpolation', () => {
+  const transformationFixturesDir = path.join(__dirname, 'fixtures', 'transformations');
+  fs.readdirSync(transformationFixturesDir).map((caseName) => {
     it(`should ${caseName.split('-').join(' ')}`, () => {
-      const actualPath = path.join(legalFixturesDir, caseName, 'actual.js');
-      const expectedPath = path.join(legalFixturesDir, caseName, 'expected.js');
+      const actualPath = path.join(transformationFixturesDir, caseName, 'actual.js');
+      const expectedPath = path.join(transformationFixturesDir, caseName, 'expected.js');
 
       const actual = transformFileSync(actualPath).code;
       const expected = fs.readFileSync(path.join(expectedPath)).toString();
@@ -22,11 +22,11 @@ describe('Variable Name Interpolation', () => {
     });
   });
 
-  const failureFixturesDir = path.join(__dirname, 'fixtures', 'parsing-errors');
-  fs.readdirSync(failureFixturesDir).map((caseName) => {
+  const parsingErrorFixturesDir = path.join(__dirname, 'fixtures', 'parsing-errors');
+  fs.readdirSync(parsingErrorFixturesDir).map((caseName) => {
     it(`should ${caseName.split('-').join(' ')}`, () => {
-      const actualPath = path.join(failureFixturesDir, caseName, 'actual.js');
-      const expectedPath = path.join(failureFixturesDir, caseName, 'expectedMessage.txt');
+      const actualPath = path.join(parsingErrorFixturesDir, caseName, 'actual.js');
+      const expectedPath = path.join(parsingErrorFixturesDir, caseName, 'expectedMessage.txt');
 
       const expectedMessage = fs.readFileSync(path.join(expectedPath)).toString().trim()
 

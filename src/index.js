@@ -48,7 +48,7 @@ function findAllTemplateNames(name, path, tag) {
   // Filter out the parts of the string that are not references to a variable
   const templateVarNames = cleanTagSplit.filter((a, i) => i % 2);
 
-  // Set up an object with keys for each variable that needs to be retrieved.
+  // Set up an object with a key for each variable whose value needs to be retrieved.
   // Their respective values will be populated during traversal.
   const resultStore = templateVarNames
     .reduce((acc, cur) => {
